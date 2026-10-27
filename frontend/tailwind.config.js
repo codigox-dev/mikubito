@@ -1,0 +1,115 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./app/**/*.{js,jsx}",
+    "./components/**/*.{js,jsx}",
+    "./lib/**/*.{js,jsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        sand: {
+          50: "#fbfaf7",
+          100: "#f5f2ea",
+          200: "#eae4d6",
+          300: "#d9cfbc",
+          400: "#b9ab91",
+          500: "#94836a",
+        },
+        ink: {
+          50: "#f5f6f6",
+          100: "#e6e8e8",
+          200: "#cdd2d2",
+          300: "#a8b1b1",
+          400: "#7b8888",
+          500: "#606d6d",
+          600: "#4b5656",
+          700: "#3e4747",
+          800: "#343b3b",
+          900: "#202626",
+          950: "#151a1a",
+        },
+        sage: {
+          50: "#f2f7f3",
+          100: "#dfece2",
+          200: "#c1d9c7",
+          300: "#98bea3",
+          400: "#6b9d7b",
+          500: "#4a7f5d",
+          600: "#386549",
+          700: "#2e513c",
+          800: "#274131",
+          900: "#21362a",
+        },
+        clay: {
+          50: "#fdf5ef",
+          100: "#fae7d9",
+          200: "#f4cbb2",
+          300: "#eca882",
+          400: "#e27f50",
+          500: "#d95f2f",
+          600: "#c44a25",
+          700: "#a33921",
+          800: "#833020",
+          900: "#6a2a1f",
+        },
+        sky: {
+          50: "#f1f6f9",
+          100: "#dfeaf1",
+          200: "#c3d7e4",
+          300: "#99bbcf",
+          400: "#6698b5",
+          500: "#457b9a",
+          600: "#396480",
+          700: "#315269",
+          800: "#2c4659",
+          900: "#283c4c",
+        },
+      },
+      fontFamily: {
+        sans: [
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "sans-serif",
+        ],
+        display: ["Georgia", "Cambria", "Times New Roman", "serif"],
+      },
+      boxShadow: {
+        soft: "0 1px 2px rgba(32, 38, 38, 0.04), 0 12px 32px -16px rgba(32, 38, 38, 0.18)",
+        lift: "0 18px 50px -24px rgba(32, 38, 38, 0.28)",
+      },
+      borderRadius: {
+        "4xl": "2rem",
+      },
+      animation: {
+        "fade-in": "fadeIn 0.35s ease-out both",
+        "slide-up": "slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "toast-in": "toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both",
+        shimmer: "shimmer 1.8s linear infinite",
+      },
+      keyframes: {
+        fadeIn: {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        slideUp: {
+          from: { opacity: "0", transform: "translateY(14px) scale(0.99)" },
+          to: { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        toastIn: {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        shimmer: {
+          from: { backgroundPosition: "200% 0" },
+          to: { backgroundPosition: "-200% 0" },
+        },
+      },
+    },
+  },
+  plugins: [],
+};

@@ -1,0 +1,25 @@
+{
+  "name": "cubito",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aplicación de gestión del hogar para Alex y Sandra",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev": "concurrently -n api,web -c green,cyan \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "build:all": "npm --prefix frontend run build",
+    "start": "concurrently -n api,web -c green,cyan \"npm --prefix backend run start\" \"npm --prefix frontend run start\"",
+    "db:migrate": "npm --prefix backend run prisma:migrate",
+    "db:deploy": "npm --prefix backend run prisma:deploy",
+    "db:seed": "npm --prefix backend run seed",
+    "db:studio": "npm --prefix backend run prisma:studio"
+  },
+  "devDependencies": {
+    "concurrently": "9.1.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

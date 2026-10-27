@@ -1,0 +1,188 @@
+// Cubito · esquema de base de datos
+// PostgreSQL + Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskAssignee {
+  ALEX
+  SANDRA
+  BOTH
+}
+
+enum TaskStatus {
+  OPEN
+  CLOSED
+}
+
+enum ShoppingListStatus {
+  ACTIVE
+  CLOSED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tasksCreated        Task[]            @relation("TaskCreatedBy")
+  tasksClosed         Task[]            @relation("TaskClosedBy")
+  expensesPaid        Expense[]         @relation("ExpensePaidBy")
+  expensesCreated     Expense[]         @relation("ExpenseCreatedBy")
+  budgetsCreated      MonthlyBudget[]
+  tripsCreated        Trip[]
+  tripExpensesCreated TripExpense[]
+  shoppingListsCreated ShoppingList[]   @relation("ShoppingListCreatedBy")
+  shoppingListsClosed  ShoppingList[]   @relation("ShoppingListClosedBy")
+  shoppingItemsAdded   ShoppingItem[]   @relation("ShoppingItemAddedBy")
+  activityLogs         ActivityLog[]
+
+  @@map("User")
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  assignee    TaskAssignee @default(BOTH)
+  status      TaskStatus   @default(OPEN)
+  createdById String
+  createdBy   User         @relation("TaskCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  closedById  String?
+  closedBy    User?        @relation("TaskClosedBy", fields: [closedById], references: [id], onDelete: SetNull)
+  closedAt    DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([status, createdAt])
+  @@index([createdById])
+  @@map("Task")
+}
+
+model MonthlyBudget {
+  id          String   @id @default(cuid())
+  year        Int
+  month       Int
+  amount      Decimal  @db.Decimal(12, 2)
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([year, month])
+  @@index([createdById])
+  @@map("MonthlyBudget")
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  concept     String
+  amount      Decimal  @db.Decimal(12, 2)
+  date        DateTime
+  category    String   @default("General")
+  paidById    String
+  paidBy      User     @relation("ExpensePaidBy", fields: [paidById], references: [id], onDelete: Restrict)
+  createdById String
+  createdBy   User     @relation("ExpenseCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+  @@index([paidById])
+  @@index([createdById])
+  @@map("Expense")
+}
+
+model Trip {
+  id          String        @id @default(cuid())
+  name        String
+  totalBudget Decimal       @db.Decimal(12, 2)
+  startDate   DateTime?
+  endDate     DateTime?
+  notes       String?
+  createdById String
+  createdBy   User          @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  expenses    TripExpense[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([createdById])
+  @@map("Trip")
+}
+
+model TripExpense {
+  id          String   @id @default(cuid())
+  concept     String
+  amount      Decimal  @db.Decimal(12, 2)
+  date        DateTime
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tripId])
+  @@index([createdById])
+  @@map("TripExpense")
+}
+
+model ShoppingList {
+  id          String             @id @default(cuid())
+  name        String
+  status      ShoppingListStatus @default(ACTIVE)
+  createdById String
+  createdBy   User               @relation("ShoppingListCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  closedById  String?
+  closedBy    User?              @relation("ShoppingListClosedBy", fields: [closedById], references: [id], onDelete: SetNull)
+  closedAt    DateTime?
+  items       ShoppingItem[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([status, createdAt])
+  @@map("ShoppingList")
+}
+
+model ShoppingItem {
+  id          String       @id @default(cuid())
+  name        String
+  quantity    String?
+  purchased   Boolean      @default(false)
+  purchasedAt DateTime?
+  listId      String
+  list        ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  addedById   String
+  addedBy     User         @relation("ShoppingItemAddedBy", fields: [addedById], references: [id], onDelete: Restrict)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([listId, purchased])
+  @@map("ShoppingItem")
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String
+  entityType  String
+  entityId    String?
+  description String
+  metadata    Json?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entityType])
+  @@index([userId])
+  @@map("ActivityLog")
+}
