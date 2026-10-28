@@ -12,6 +12,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { NotificationBell } from "@/components/notification-bell";
 import { Avatar, IconButton } from "@/components/ui";
 import { cn, firstName } from "@/lib/utils";
 
@@ -104,7 +105,10 @@ export function AppShell({ children }) {
     <div className="min-h-screen">
       {/* Sidebar de escritorio */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-sand-200/80 bg-white/85 px-5 py-6 backdrop-blur-xl lg:flex">
-        <Brand />
+        <div className="flex items-center justify-between gap-2">
+          <Brand />
+          <NotificationBell />
+        </div>
 
         <div className="mt-9">
           <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-ink-300">
@@ -147,6 +151,7 @@ export function AppShell({ children }) {
         <div className="flex h-16 items-center justify-between">
           <Brand />
           <div className="flex items-center gap-1.5">
+            <NotificationBell />
             <div className="mr-1 hidden text-right sm:block">
               <p className="text-xs font-bold text-ink-800">
                 {firstName(user?.name)}

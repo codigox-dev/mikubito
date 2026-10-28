@@ -76,6 +76,7 @@ router.post(
         id: user.id,
         name: user.name,
         email: user.email,
+        assigneeKey: user.assigneeKey || null,
       },
     });
   })
@@ -91,6 +92,7 @@ router.get(
         id: req.user.id,
         name: req.user.name,
         email: req.user.email,
+        assigneeKey: req.user.assigneeKey || null,
       },
     });
   })

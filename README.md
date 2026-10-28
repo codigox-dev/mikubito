@@ -2,7 +2,7 @@
 
 Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tareas, finanzas, viajes, compra y un historial común de todo lo que pasa en casa.
 
-> Estado: primera versión funcional, lista para ejecutar en local y desplegar en AWS.
+> Estado: versión 1.1, lista para ejecutar en local y desplegar en AWS.
 
 ---
 
@@ -10,7 +10,10 @@ Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tar
 
 - **Autenticación privada** con email y contraseña, `bcrypt` y JWT. No hay registro público: solo existen los dos usuarios creados por el seed.
 - **Recordar sesión** durante 30 días en el dispositivo actual. Sin recordar, la sesión dura 12 horas y se guarda solo mientras la pestaña esté abierta.
-- **Tareas de casa**: crear, editar, cerrar y reabrir. Asignación a Alex, Sandra o ambos.
+- **Tareas de casa**: crear, editar, cerrar y reabrir. Asignación a Alex, Sandra o ambos, con **fecha límite opcional** y aviso visual de tareas vencidas.
+- **Vista de tareas**: pendientes primero, con filtros «Para mí», «Vencidas» y «Hechas».
+- **Borrado definitivo** de tareas y productos, siempre con confirmación y registro en Actividad.
+- **Campana de notificaciones**: avisa cuando te asignan o reasignan una tarea y cuando el otro añade productos o cierra la lista de la compra.
 - **Finanzas**: presupuesto por mes, gastos comunes, pagador, reparto por persona y restante.
 - **Viajes**: presupuesto independiente por viaje, gastos fijos, total gastado y restante.
 - **Supermercado**: una lista activa, productos con cantidad, marcado inmediato de comprados, sincronización automática cada 8 segundos, cierre de lista e historial.
@@ -226,6 +229,7 @@ Authorization: Bearer <jwt>
 | `PATCH` | `/api/tasks/:id` | Editar tarea |
 | `POST` | `/api/tasks/:id/close` | Cerrar tarea |
 | `POST` | `/api/tasks/:id/reopen` | Reabrir tarea |
+| `DELETE` | `/api/tasks/:id` | Eliminar tarea |
 | `GET` | `/api/finance/overview?month=YYYY-MM` | Presupuesto, gastos, reparto y restante |
 | `PUT` | `/api/finance/budget` | Crear/actualizar presupuesto mensual |
 | `POST/PATCH/DELETE` | `/api/finance/expenses[/:id]` | Gastos comunes |
@@ -236,6 +240,9 @@ Authorization: Bearer <jwt>
 | `POST` | `/api/shopping/lists/:id/items` | Añadir producto |
 | `PATCH/DELETE` | `/api/shopping/items/:id` | Editar, marcar o borrar producto |
 | `POST` | `/api/shopping/lists/:id/close` | Cerrar lista |
+| `GET` | `/api/notifications` | Últimas notificaciones y contador sin leer |
+| `POST` | `/api/notifications/:id/read` | Marcar una notificación como leída |
+| `POST` | `/api/notifications/read-all` | Marcar todas como leídas |
 | `GET` | `/api/activity` | Log global paginado y filtrable |
 | `GET` | `/api/dashboard` | Resumen agregado de inicio |
 
@@ -258,6 +265,9 @@ Respuesta de error estándar:
 - **Marcado de productos**: actualización optimista en la UI + refresco silencioso cada 8 s. Se siente instantáneo y sincroniza el otro dispositivo sin añadir infraestructura WebSocket en la v1.
 - **Auditoría dentro de transacciones** junto al cambio principal, para que no exista una acción sin registro.
 - **Dinero con `Decimal(12,2)`** en PostgreSQL; la API lo serializa como número para la UI.
+- **Fechas límite como día natural** (`YYYY-MM-DD`) guardadas a medianoche UTC y serializadas sin hora, para que no cambien de día según la zona horaria.
+- **Notificaciones persistentes por usuario** en base de datos. La campana se refresca cada 20 s y al recuperar el foco; nunca se notifica al autor de la acción.
+- **Miembro del hogar** (`assigneeKey`) guardado en el usuario, para resolver «Para mí» y los destinatarios de cada aviso sin depender del email.
 - **JWT stateless** con `issuer`, `audience` y caducidad. El logout elimina el token del cliente.
 - **Logout sin revocación de servidor**: para un endurecimiento futuro conviene rotación de tokens o sesiones en base de datos.
 - **Token en `localStorage`** cuando se marca «recordarme» y en `sessionStorage` cuando no. Es la solución simple para persistencia entre frontend/API separados; para un nivel de seguridad superior, migrar a cookie `HttpOnly` + protección CSRF.

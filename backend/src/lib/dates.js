@@ -55,4 +55,40 @@ function currentMonthKey() {
   return getMonthRange().key;
 }
 
-module.exports = { getMonthRange, currentMonthKey };
+const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/**
+ * Convierte una fecha `YYYY-MM-DD` a un Date a medianoche UTC.
+ * Devuelve null si el formato o el día no son válidos (p. ej. 2026-02-31).
+ */
+function parseDateOnly(value) {
+  if (!value) return null;
+
+  const match = DATE_ONLY_PATTERN.exec(value);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  const valid =
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day;
+
+  return valid ? date : null;
+}
+
+/** Devuelve la fecha almacenada como `YYYY-MM-DD` para no arrastrar zonas horarias. */
+function formatDateOnly(value) {
+  if (!value) return null;
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+module.exports = {
+  getMonthRange,
+  currentMonthKey,
+  parseDateOnly,
+  formatDateOnly,
+};

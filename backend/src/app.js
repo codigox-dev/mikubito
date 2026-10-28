@@ -12,6 +12,7 @@ const taskRoutes = require("./routes/tasks");
 const financeRoutes = require("./routes/finance");
 const tripRoutes = require("./routes/trips");
 const shoppingRoutes = require("./routes/shopping");
+const notificationRoutes = require("./routes/notifications");
 const activityRoutes = require("./routes/activity");
 const dashboardRoutes = require("./routes/dashboard");
 
@@ -63,6 +64,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/finance", financeRoutes);
 app.use("/api/trips", tripRoutes);
 app.use("/api/shopping", shoppingRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 

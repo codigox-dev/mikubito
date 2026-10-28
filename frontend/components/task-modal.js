@@ -18,6 +18,7 @@ const emptyForm = {
   title: "",
   description: "",
   assignee: "BOTH",
+  dueDate: "",
 };
 
 export function TaskModal({ open, onClose, task, onSaved }) {
@@ -37,6 +38,7 @@ export function TaskModal({ open, onClose, task, onSaved }) {
             title: task.title || "",
             description: task.description || "",
             assignee: task.assignee || "BOTH",
+            dueDate: task.dueDate || "",
           }
         : emptyForm
     );
@@ -57,6 +59,7 @@ export function TaskModal({ open, onClose, task, onSaved }) {
         title: form.title.trim(),
         description: form.description.trim() || null,
         assignee: form.assignee,
+        dueDate: form.dueDate || null,
       };
 
       if (editing) {
@@ -130,17 +133,32 @@ export function TaskModal({ open, onClose, task, onSaved }) {
           />
         </Field>
 
-        <Field label="Asignada a" htmlFor="task-assignee">
-          <Select
-            id="task-assignee"
-            value={form.assignee}
-            onChange={(event) => update("assignee", event.target.value)}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Asignada a" htmlFor="task-assignee">
+            <Select
+              id="task-assignee"
+              value={form.assignee}
+              onChange={(event) => update("assignee", event.target.value)}
+            >
+              <option value="ALEX">Alex</option>
+              <option value="SANDRA">Sandra</option>
+              <option value="BOTH">Ambos</option>
+            </Select>
+          </Field>
+
+          <Field
+            label="Fecha límite"
+            htmlFor="task-due-date"
+            hint="Opcional. Déjala vacía si no hay prisa."
           >
-            <option value="ALEX">Alex</option>
-            <option value="SANDRA">Sandra</option>
-            <option value="BOTH">Ambos</option>
-          </Select>
-        </Field>
+            <Input
+              id="task-due-date"
+              type="date"
+              value={form.dueDate}
+              onChange={(event) => update("dueDate", event.target.value)}
+            />
+          </Field>
+        </div>
       </form>
     </Modal>
   );

@@ -7,6 +7,12 @@ const { parse } = require("../lib/validate");
 const { requireAuth } = require("../middleware/auth");
 const { ACTIONS } = require("../lib/activity-actions");
 const { recordActivity } = require("../lib/audit");
+const { formatDateOnly, parseDateOnly } = require("../lib/dates");
+const {
+  ASSIGNEE_KEYS,
+  NOTIFICATION_TYPES,
+  notifyMembers,
+} = require("../lib/notifications");
 const {
   serializeTask,
   userSummarySelect,
@@ -23,10 +29,21 @@ const taskInclude = {
 
 const assigneeSchema = z.enum(["ALEX", "SANDRA", "BOTH"]);
 
+const dueDateSchema = z
+  .string()
+  .trim()
+  .max(10)
+  .refine((value) => value === "" || parseDateOnly(value) !== null, {
+    message: "La fecha no es válida",
+  })
+  .nullable()
+  .optional();
+
 const createTaskSchema = z.object({
   title: z.string().trim().min(1, "El título es obligatorio").max(160),
   description: z.string().trim().max(2000).optional().nullable(),
   assignee: assigneeSchema.optional().default("BOTH"),
+  dueDate: dueDateSchema,
 });
 
 const updateTaskSchema = z
@@ -34,6 +51,7 @@ const updateTaskSchema = z
     title: z.string().trim().min(1).max(160).optional(),
     description: z.string().trim().max(2000).optional().nullable(),
     assignee: assigneeSchema.optional(),
+    dueDate: dueDateSchema,
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "No hay cambios que guardar",
@@ -51,7 +69,11 @@ router.get(
     const tasks = await prisma.task.findMany({
       where: status === "all" ? {} : { status: status === "open" ? "OPEN" : "CLOSED" },
       include: taskInclude,
-      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      orderBy: [
+        { status: "asc" },
+        { dueDate: { sort: "asc", nulls: "last" } },
+        { createdAt: "desc" },
+      ],
     });
 
     res.json({ tasks: tasks.map(serializeTask) });
@@ -85,6 +107,7 @@ router.post(
           title: data.title,
           description: data.description || null,
           assignee: data.assignee,
+          dueDate: data.dueDate ? parseDateOnly(data.dueDate) : null,
           createdById: req.user.id,
         },
         include: taskInclude,
@@ -97,7 +120,26 @@ router.post(
         entityType: "TASK",
         entityId: created.id,
         description: `${req.user.name} creó la tarea «${created.title}»`,
-        metadata: { assignee: created.assignee, title: created.title },
+        metadata: {
+          assignee: created.assignee,
+          title: created.title,
+          dueDate: formatDateOnly(created.dueDate),
+        },
+      });
+
+      const both = created.assignee === "BOTH";
+
+      await notifyMembers({
+        tx,
+        keys: ASSIGNEE_KEYS[created.assignee] || [],
+        actorId: req.user.id,
+        type: NOTIFICATION_TYPES.TASK_ASSIGNED,
+        title: both ? "Nueva tarea para los dos" : "Nueva tarea para ti",
+        body: both
+          ? `${req.user.name} os asignó «${created.title}»`
+          : `${req.user.name} te asignó «${created.title}»`,
+        entityType: "TASK",
+        entityId: created.id,
       });
 
       return created;
@@ -123,6 +165,13 @@ router.patch(
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description || null;
     if (data.assignee !== undefined) updateData.assignee = data.assignee;
+    if (data.dueDate !== undefined) {
+      updateData.dueDate = data.dueDate ? parseDateOnly(data.dueDate) : null;
+    }
+
+    const previousKeys = ASSIGNEE_KEYS[existing.assignee] || [];
+    const nextKeys = ASSIGNEE_KEYS[data.assignee || existing.assignee] || [];
+    const addedKeys = nextKeys.filter((key) => !previousKeys.includes(key));
 
     const task = await prisma.$transaction(async (tx) => {
       const updated = await tx.task.update({
@@ -138,8 +187,29 @@ router.patch(
         entityType: "TASK",
         entityId: updated.id,
         description: `${req.user.name} editó la tarea «${updated.title}»`,
-        metadata: { title: updated.title, assignee: updated.assignee },
+        metadata: {
+          title: updated.title,
+          assignee: updated.assignee,
+          dueDate: formatDateOnly(updated.dueDate),
+        },
       });
+
+      if (data.assignee !== undefined && addedKeys.length > 0) {
+        const both = updated.assignee === "BOTH";
+
+        await notifyMembers({
+          tx,
+          keys: addedKeys,
+          actorId: req.user.id,
+          type: NOTIFICATION_TYPES.TASK_ASSIGNED,
+          title: "Tarea reasignada",
+          body: both
+            ? `${req.user.name} os asignó «${updated.title}»`
+            : `${req.user.name} te asignó «${updated.title}»`,
+          entityType: "TASK",
+          entityId: updated.id,
+        });
+      }
 
       return updated;
     });
@@ -233,6 +303,37 @@ router.post(
     });
 
     res.json({ task: serializeTask(task) });
+  })
+);
+
+router.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const existing = await prisma.task.findUnique({ where: { id: req.params.id } });
+
+    if (!existing) {
+      throw new AppError("La tarea no existe", 404);
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.task.delete({ where: { id: existing.id } });
+
+      await recordActivity({
+        tx,
+        userId: req.user.id,
+        action: ACTIONS.TASK_DELETED,
+        entityType: "TASK",
+        entityId: existing.id,
+        description: `${req.user.name} eliminó la tarea «${existing.title}»`,
+        metadata: {
+          title: existing.title,
+          assignee: existing.assignee,
+          status: existing.status,
+        },
+      });
+    });
+
+    res.status(204).end();
   })
 );
 

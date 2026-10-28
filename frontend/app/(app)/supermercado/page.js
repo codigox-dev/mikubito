@@ -426,7 +426,7 @@ export default function ShoppingPage() {
                     <IconButton
                       label={`Eliminar ${item.name}`}
                       onClick={() => setDeleteTarget(item)}
-                      className="opacity-60 hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100"
+                      className="hover:bg-red-50 hover:text-red-600"
                     >
                       <Trash2 className="h-4 w-4" />
                     </IconButton>

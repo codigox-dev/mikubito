@@ -1,3 +1,5 @@
+const { formatDateOnly } = require("./dates");
+
 const userSummary = {
   id: true,
   name: true,
@@ -20,6 +22,7 @@ function serializeUser(user) {
     id: user.id,
     name: user.name,
     email: user.email,
+    assigneeKey: user.assigneeKey || null,
   };
 }
 
@@ -30,6 +33,7 @@ function serializeTask(task) {
     description: task.description,
     assignee: task.assignee,
     status: task.status,
+    dueDate: formatDateOnly(task.dueDate),
     closedAt: task.closedAt,
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
@@ -134,6 +138,19 @@ function serializeShoppingList(list) {
   };
 }
 
+function serializeNotification(notification) {
+  return {
+    id: notification.id,
+    type: notification.type,
+    title: notification.title,
+    body: notification.body,
+    entityType: notification.entityType,
+    entityId: notification.entityId,
+    readAt: notification.readAt,
+    createdAt: notification.createdAt,
+  };
+}
+
 function serializeActivity(activity) {
   return {
     id: activity.id,
@@ -158,5 +175,6 @@ module.exports = {
   serializeTrip,
   serializeShoppingItem,
   serializeShoppingList,
+  serializeNotification,
   serializeActivity,
 };

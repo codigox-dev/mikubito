@@ -9,10 +9,12 @@ const users = [
   {
     name: "Alex",
     email: process.env.SEED_ALEX_EMAIL || "alex@cubito.local",
+    assigneeKey: "ALEX",
   },
   {
     name: "Sandra",
     email: process.env.SEED_SANDRA_EMAIL || "sandra@cubito.local",
+    assigneeKey: "SANDRA",
   },
 ];
 
@@ -32,11 +34,16 @@ async function main() {
 
     await prisma.user.upsert({
       where: { email },
-      update: { name: user.name, passwordHash },
+      update: {
+        name: user.name,
+        passwordHash,
+        assigneeKey: user.assigneeKey,
+      },
       create: {
         name: user.name,
         email,
         passwordHash,
+        assigneeKey: user.assigneeKey,
       },
     });
 

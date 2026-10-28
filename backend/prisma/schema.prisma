@@ -21,18 +21,24 @@ enum TaskStatus {
   CLOSED
 }
 
+enum HouseholdMember {
+  ALEX
+  SANDRA
+}
+
 enum ShoppingListStatus {
   ACTIVE
   CLOSED
 }
 
 model User {
-  id           String   @id @default(cuid())
+  id           String           @id @default(cuid())
   name         String
-  email        String   @unique
+  email        String           @unique
   passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  assigneeKey  HouseholdMember?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   tasksCreated        Task[]            @relation("TaskCreatedBy")
   tasksClosed         Task[]            @relation("TaskClosedBy")
@@ -45,6 +51,7 @@ model User {
   shoppingListsClosed  ShoppingList[]   @relation("ShoppingListClosedBy")
   shoppingItemsAdded   ShoppingItem[]   @relation("ShoppingItemAddedBy")
   activityLogs         ActivityLog[]
+  notifications        Notification[]
 
   @@map("User")
 }
@@ -55,6 +62,7 @@ model Task {
   description String?
   assignee    TaskAssignee @default(BOTH)
   status      TaskStatus   @default(OPEN)
+  dueDate     DateTime?
   createdById String
   createdBy   User         @relation("TaskCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   closedById  String?
@@ -168,6 +176,23 @@ model ShoppingItem {
 
   @@index([listId, purchased])
   @@map("ShoppingItem")
+}
+
+model Notification {
+  id         String    @id @default(cuid())
+  type       String
+  title      String
+  body       String?
+  entityType String?
+  entityId   String?
+  readAt     DateTime?
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@map("Notification")
 }
 
 model ActivityLog {

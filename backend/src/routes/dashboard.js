@@ -37,7 +37,10 @@ router.get(
           createdBy: userSummarySelect,
           closedBy: userSummarySelect,
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: [
+          { dueDate: { sort: "asc", nulls: "last" } },
+          { createdAt: "desc" },
+        ],
         take: 5,
       }),
       prisma.monthlyBudget.findUnique({

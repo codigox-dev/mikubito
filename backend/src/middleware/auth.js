@@ -19,7 +19,13 @@ async function requireAuth(req, res, next) {
 
     const user = await prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, name: true, email: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        assigneeKey: true,
+        createdAt: true,
+      },
     });
 
     if (!user) {

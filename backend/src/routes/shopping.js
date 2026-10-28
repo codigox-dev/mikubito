@@ -8,6 +8,10 @@ const { requireAuth } = require("../middleware/auth");
 const { ACTIONS } = require("../lib/activity-actions");
 const { recordActivity } = require("../lib/audit");
 const {
+  NOTIFICATION_TYPES,
+  notifyHousehold,
+} = require("../lib/notifications");
+const {
   serializeShoppingItem,
   serializeShoppingList,
   userSummarySelect,
@@ -157,6 +161,16 @@ router.post(
         entityId: created.id,
         description: `${req.user.name} añadió «${created.name}» a la lista «${list.name}»`,
         metadata: { listName: list.name, itemName: created.name },
+      });
+
+      await notifyHousehold({
+        tx,
+        actorId: req.user.id,
+        type: NOTIFICATION_TYPES.SHOPPING_ITEM_ADDED,
+        title: "Nuevo producto en la compra",
+        body: `${req.user.name} añadió «${created.name}» a «${list.name}»`,
+        entityType: "SHOPPING",
+        entityId: list.id,
       });
 
       return created;
@@ -313,6 +327,16 @@ router.post(
           itemCount: updated.items.length,
           purchasedCount,
         },
+      });
+
+      await notifyHousehold({
+        tx,
+        actorId: req.user.id,
+        type: NOTIFICATION_TYPES.SHOPPING_LIST_CLOSED,
+        title: "Lista de compra cerrada",
+        body: `${req.user.name} cerró «${updated.name}»`,
+        entityType: "SHOPPING",
+        entityId: updated.id,
       });
 
       return updated;
