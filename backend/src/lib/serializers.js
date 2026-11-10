@@ -151,6 +151,29 @@ function serializeNotification(notification) {
   };
 }
 
+function serializeMeal(meal) {
+  return {
+    id: meal.id,
+    date: meal.date,
+    mealType: meal.mealType,
+    title: meal.title,
+    notes: meal.notes,
+    createdBy: serializeUser(meal.createdBy),
+    createdAt: meal.createdAt,
+    updatedAt: meal.updatedAt,
+  };
+}
+
+function serializeNote(note) {
+  return {
+    id: note.id,
+    content: note.content,
+    createdBy: serializeUser(note.createdBy),
+    createdAt: note.createdAt,
+    updatedAt: note.updatedAt,
+  };
+}
+
 function serializeActivity(activity) {
   return {
     id: activity.id,
@@ -176,5 +199,7 @@ module.exports = {
   serializeShoppingItem,
   serializeShoppingList,
   serializeNotification,
+  serializeMeal,
+  serializeNote,
   serializeActivity,
 };

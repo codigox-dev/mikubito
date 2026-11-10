@@ -86,9 +86,20 @@ function formatDateOnly(value) {
   return new Date(value).toISOString().slice(0, 10);
 }
 
+/**
+ * Etiqueta larga en español a partir de `YYYY-MM-DD` (o un Date).
+ * Pensada para descripciones de auditoría: «10 de noviembre de 2026».
+ */
+function formatDateLabel(value) {
+  const date = typeof value === "string" ? parseDateOnly(value) : value;
+  if (!date) return "";
+  return `${date.getUTCDate()} de ${MONTH_LABELS[date.getUTCMonth()]} de ${date.getUTCFullYear()}`;
+}
+
 module.exports = {
   getMonthRange,
   currentMonthKey,
   parseDateOnly,
   formatDateOnly,
+  formatDateLabel,
 };

@@ -31,6 +31,12 @@ enum ShoppingListStatus {
   CLOSED
 }
 
+enum MealType {
+  DESAYUNO
+  ALMUERZO
+  CENA
+}
+
 model User {
   id           String           @id @default(cuid())
   name         String
@@ -52,6 +58,8 @@ model User {
   shoppingItemsAdded   ShoppingItem[]   @relation("ShoppingItemAddedBy")
   activityLogs         ActivityLog[]
   notifications        Notification[]
+  mealPlans            MealPlan[]
+  quickNotes           QuickNote[]
 
   @@map("User")
 }
@@ -210,4 +218,33 @@ model ActivityLog {
   @@index([entityType])
   @@index([userId])
   @@map("ActivityLog")
+}
+
+model MealPlan {
+  id          String   @id @default(uuid())
+  date        String
+  mealType    MealType
+  title       String
+  notes       String?
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([date, mealType])
+  @@index([createdById])
+  @@map("MealPlan")
+}
+
+model QuickNote {
+  id          String   @id @default(uuid())
+  content     String
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([createdById])
+  @@map("QuickNote")
 }

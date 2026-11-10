@@ -30,7 +30,7 @@ import {
   StatCard,
 } from "@/components/ui";
 import { apiRequest } from "@/lib/api";
-import { ASSIGNEE_LABELS, ASSIGNEE_STYLES, ENTITY_COLORS } from "@/lib/constants";
+import { ASSIGNEE_LABELS, ASSIGNEE_STYLES, ENTITY_COLORS, ENTITY_LABELS } from "@/lib/constants";
 import {
   currentMonthKey,
   formatCurrency,
@@ -577,7 +577,8 @@ export default function DashboardPage() {
                               "bg-sand-100 text-ink-500"
                           )}
                         >
-                          {activity.entityType}
+                          {ENTITY_LABELS[activity.entityType] ||
+                            activity.entityType}
                         </span>
                         <span className="text-[10px] text-ink-300">
                           {relativeTime(activity.createdAt)}

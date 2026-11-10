@@ -2,13 +2,17 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import {
   Activity,
+  Ellipsis,
   LayoutDashboard,
   ListTodo,
   LogOut,
   Plane,
   ShoppingBasket,
+  StickyNote,
+  UtensilsCrossed,
   Wallet,
 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
@@ -17,13 +21,23 @@ import { Avatar, IconButton } from "@/components/ui";
 import { cn, firstName } from "@/lib/utils";
 
 const navItems = [
-  { href: "/dashboard", label: "Inicio", icon: LayoutDashboard },
-  { href: "/tareas", label: "Tareas", icon: ListTodo },
+  { href: "/dashboard", label: "Inicio", icon: LayoutDashboard, mobile: true },
+  { href: "/tareas", label: "Tareas", icon: ListTodo, mobile: true },
+  { href: "/comidas", label: "Comidas", icon: UtensilsCrossed, mobile: true },
   { href: "/finanzas", label: "Finanzas", icon: Wallet },
   { href: "/viajes", label: "Viajes", icon: Plane },
-  { href: "/supermercado", label: "Compra", icon: ShoppingBasket },
+  {
+    href: "/supermercado",
+    label: "Compra",
+    icon: ShoppingBasket,
+    mobile: true,
+  },
+  { href: "/notas", label: "Notas", icon: StickyNote, mobile: true },
   { href: "/actividad", label: "Actividad", icon: Activity },
 ];
+
+const mobilePrimaryItems = navItems.filter((item) => item.mobile);
+const mobileMoreItems = navItems.filter((item) => !item.mobile);
 
 function Brand() {
   return (
@@ -95,6 +109,36 @@ function NavLink({ item, compact = false, onClick }) {
 export function AppShell({ children }) {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const mobileNavRef = useRef(null);
+
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!moreOpen) return undefined;
+
+    const handlePointer = (event) => {
+      if (!mobileNavRef.current?.contains(event.target)) setMoreOpen(false);
+    };
+    const handleKey = (event) => {
+      if (event.key === "Escape") setMoreOpen(false);
+    };
+
+    document.addEventListener("mousedown", handlePointer);
+    document.addEventListener("keydown", handleKey);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointer);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [moreOpen]);
+
+  const moreActive = mobileMoreItems.some(
+    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
+  );
 
   const handleLogout = () => {
     logout();
@@ -173,11 +217,42 @@ export function AppShell({ children }) {
       </div>
 
       {/* Navegación móvil */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-sand-200/80 bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl lg:hidden">
+      <nav
+        ref={mobileNavRef}
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-sand-200/80 bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl lg:hidden"
+      >
+        {moreOpen ? (
+          <div className="mb-2 grid grid-cols-3 gap-1 rounded-2xl border border-sand-200 bg-white p-2 shadow-lift">
+            {mobileMoreItems.map((item) => (
+              <NavLink
+                key={item.href}
+                item={item}
+                compact
+                onClick={() => setMoreOpen(false)}
+              />
+            ))}
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-6 gap-1">
-          {navItems.map((item) => (
+          {mobilePrimaryItems.map((item) => (
             <NavLink key={item.href} item={item} compact />
           ))}
+          <button
+            type="button"
+            onClick={() => setMoreOpen((current) => !current)}
+            aria-expanded={moreOpen}
+            aria-label="Más secciones"
+            className={cn(
+              "focus-ring flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[10px] font-semibold transition",
+              moreOpen || moreActive
+                ? "bg-ink-900 text-white"
+                : "text-ink-400 hover:bg-sand-100"
+            )}
+          >
+            <Ellipsis className="h-[18px] w-[18px]" />
+            Más
+          </button>
         </div>
       </nav>
     </div>

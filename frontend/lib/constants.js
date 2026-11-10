@@ -16,6 +16,8 @@ export const ENTITY_LABELS = {
   FINANCE: "Finanzas",
   TRIP: "Viajes",
   SHOPPING: "Supermercado",
+  MEAL: "Comidas",
+  NOTE: "Notas",
 };
 
 export const ENTITY_COLORS = {
@@ -23,6 +25,19 @@ export const ENTITY_COLORS = {
   FINANCE: "bg-clay-100 text-clay-700",
   TRIP: "bg-sky-100 text-sky-700",
   SHOPPING: "bg-amber-100 text-amber-700",
+  MEAL: "bg-rose-100 text-rose-700",
+  NOTE: "bg-violet-100 text-violet-700",
 };
+
+export const MEAL_TYPES = [
+  { value: "DESAYUNO", label: "Desayuno" },
+  { value: "ALMUERZO", label: "Almuerzo" },
+  { value: "CENA", label: "Cena" },
+];
+
+export const MEAL_TYPE_LABELS = MEAL_TYPES.reduce((labels, meal) => {
+  labels[meal.value] = meal.label;
+  return labels;
+}, {});
 
 export const PURCHASE_HISTORY_PAGE_SIZE = 20;

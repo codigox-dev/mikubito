@@ -169,6 +169,8 @@ const badgeTones = {
   amber: "border-amber-200 bg-amber-50 text-amber-800",
   red: "border-red-200 bg-red-50 text-red-700",
   ink: "border-ink-200 bg-ink-50 text-ink-700",
+  rose: "border-rose-200 bg-rose-50 text-rose-700",
+  violet: "border-violet-200 bg-violet-50 text-violet-700",
 };
 
 export function Badge({ children, tone = "sand", className }) {

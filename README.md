@@ -1,8 +1,8 @@
 # Cubito 🏠
 
-Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tareas, finanzas, viajes, compra y un historial común de todo lo que pasa en casa.
+Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tareas, finanzas, viajes, compra, planificación semanal de comidas, notas rápidas y un historial común de todo lo que pasa en casa.
 
-> Estado: versión 1.1, lista para ejecutar en local y desplegar en AWS.
+> Estado: versión 1.2, lista para ejecutar en local y desplegar en AWS.
 
 ---
 
@@ -17,6 +17,8 @@ Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tar
 - **Finanzas**: presupuesto por mes, gastos comunes, pagador, reparto por persona y restante.
 - **Viajes**: presupuesto independiente por viaje, gastos fijos, total gastado y restante.
 - **Supermercado**: una lista activa, productos con cantidad, marcado inmediato de comprados, sincronización automática cada 8 segundos, cierre de lista e historial.
+- **Comidas**: planificación semanal de lunes a domingo con desayuno, almuerzo y cena. Navegación entre semanas, huecos opcionales y edición o borrado de cada plato.
+- **Notas rápidas**: tablón compartido con creador rápido, autor, fecha y borrado con confirmación.
 - **Auditoría global**: cada creación, edición o borrado guarda usuario, fecha, entidad y descripción.
 - **Diseño responsive** con sidebar en escritorio y navegación inferior en móvil.
 
@@ -48,7 +50,7 @@ Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tar
 │   │   ├── config/env.js
 │   │   ├── lib/                 # Prisma, JWT, auditoría, serialización
 │   │   ├── middleware/          # Auth Bearer, errores, 404
-│   │   ├── routes/              # auth, tasks, finance, trips, shopping...
+│   │   ├── routes/              # auth, tasks, finance, trips, shopping, meals, notes...
 │   │   ├── app.js
 │   │   └── server.js
 │   ├── .env.example
@@ -62,6 +64,8 @@ Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tar
 │   │   │   ├── finanzas/
 │   │   │   ├── viajes/
 │   │   │   ├── supermercado/
+│   │   │   ├── comidas/
+│   │   │   ├── notas/
 │   │   │   └── actividad/
 │   │   ├── login/
 │   │   └── layout.js
@@ -240,6 +244,12 @@ Authorization: Bearer <jwt>
 | `POST` | `/api/shopping/lists/:id/items` | Añadir producto |
 | `PATCH/DELETE` | `/api/shopping/items/:id` | Editar, marcar o borrar producto |
 | `POST` | `/api/shopping/lists/:id/close` | Cerrar lista |
+| `GET` | `/api/meals?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD` | Comidas del rango semanal |
+| `POST` | `/api/meals` | Crear o actualizar (upsert) una comida |
+| `DELETE` | `/api/meals/:id` | Eliminar una comida |
+| `GET` | `/api/notes` | Notas rápidas, de más reciente a más antigua |
+| `POST` | `/api/notes` | Crear una nota rápida (`content`) |
+| `DELETE` | `/api/notes/:id` | Eliminar una nota |
 | `GET` | `/api/notifications` | Últimas notificaciones y contador sin leer |
 | `POST` | `/api/notifications/:id/read` | Marcar una notificación como leída |
 | `POST` | `/api/notifications/read-all` | Marcar todas como leídas |
@@ -262,6 +272,9 @@ Respuesta de error estándar:
 ## Decisiones técnicas
 
 - **Una sola lista activa** de supermercado. El backend rechaza crear o modificar listas cerradas.
+- **Comidas con upsert por casilla**: `@@unique([date, mealType])` garantiza una sola comida por día y tipo. El POST devuelve `201` al crear y `200` al actualizar, conservando el autor original; la auditoría registra quién editó.
+- **Fechas de comida como texto** `YYYY-MM-DD` para evitar desfases de zona horaria. El rango semanal se valida y se limita a 62 días.
+- **Notas rápidas sin edición**: se crean y se borran; cada cambio queda en Actividad con un extracto de la nota como contexto.
 - **Marcado de productos**: actualización optimista en la UI + refresco silencioso cada 8 s. Se siente instantáneo y sincroniza el otro dispositivo sin añadir infraestructura WebSocket en la v1.
 - **Auditoría dentro de transacciones** junto al cambio principal, para que no exista una acción sin registro.
 - **Dinero con `Decimal(12,2)`** en PostgreSQL; la API lo serializa como número para la UI.

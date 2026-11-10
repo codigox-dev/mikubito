@@ -124,6 +124,97 @@ export function relativeTime(value) {
   return formatDate(value);
 }
 
+/* Fechas de calendario (YYYY-MM-DD) tratadas siempre en hora local. */
+
+export function parseDateOnlyLocal(value) {
+  if (!value) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+
+  const date = new Date(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3])
+  );
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function toISODateLocal(date) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+export function addDaysISO(value, days) {
+  const date = parseDateOnlyLocal(value);
+  if (!date) return value;
+  date.setDate(date.getDate() + days);
+  return toISODateLocal(date);
+}
+
+/** Lunes de la semana a la que pertenece `value` (por defecto, hoy). */
+export function startOfWeekISO(value = todayInputValue()) {
+  const date = parseDateOnlyLocal(value);
+  if (!date) return value;
+
+  const day = date.getDay();
+  date.setDate(date.getDate() + (day === 0 ? -6 : 1 - day));
+  return toISODateLocal(date);
+}
+
+export function isSameWeekISO(value, reference = todayInputValue()) {
+  return startOfWeekISO(value) === startOfWeekISO(reference);
+}
+
+export function formatWeekdayShort(value) {
+  const date = parseDateOnlyLocal(value);
+  if (!date) return "";
+
+  return new Intl.DateTimeFormat("es-ES", { weekday: "short" })
+    .format(date)
+    .replace(".", "");
+}
+
+export function formatDayNumber(value) {
+  const date = parseDateOnlyLocal(value);
+  if (!date) return "";
+  return String(date.getDate());
+}
+
+export function formatLongDateISO(value) {
+  const date = parseDateOnlyLocal(value);
+  if (!date) return "";
+
+  return new Intl.DateTimeFormat("es-ES", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(date);
+}
+
+export function formatWeekRange(startValue, endValue) {
+  const start = parseDateOnlyLocal(startValue);
+  const end = parseDateOnlyLocal(endValue);
+  if (!start || !end) return "";
+
+  const monthShort = new Intl.DateTimeFormat("es-ES", { month: "short" });
+  const startMonth = monthShort.format(start).replace(".", "");
+  const endMonth = monthShort.format(end).replace(".", "");
+  const sameMonth =
+    start.getFullYear() === end.getFullYear() &&
+    start.getMonth() === end.getMonth();
+
+  if (sameMonth) {
+    return `${start.getDate()} – ${end.getDate()} ${endMonth} ${end.getFullYear()}`;
+  }
+
+  if (start.getFullYear() === end.getFullYear()) {
+    return `${start.getDate()} ${startMonth} – ${end.getDate()} ${endMonth} ${end.getFullYear()}`;
+  }
+
+  return `${start.getDate()} ${startMonth} ${start.getFullYear()} – ${end.getDate()} ${endMonth} ${end.getFullYear()}`;
+}
+
 export function greetingForNow() {
   const hour = new Date().getHours();
   if (hour < 6) return "Buenas noches";

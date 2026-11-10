@@ -8,6 +8,8 @@ import {
   History,
   Plane,
   ShoppingBasket,
+  StickyNote,
+  UtensilsCrossed,
   Wallet,
 } from "lucide-react";
 import { useToast } from "@/components/toast-provider";
@@ -31,6 +33,8 @@ const filters = [
   { value: "FINANCE", label: "Finanzas" },
   { value: "TRIP", label: "Viajes" },
   { value: "SHOPPING", label: "Supermercado" },
+  { value: "MEAL", label: "Comidas" },
+  { value: "NOTE", label: "Notas" },
 ];
 
 const entityMeta = {
@@ -53,6 +57,16 @@ const entityMeta = {
     icon: ShoppingBasket,
     wrapper: "bg-amber-100 text-amber-700",
     badge: "amber",
+  },
+  MEAL: {
+    icon: UtensilsCrossed,
+    wrapper: "bg-rose-100 text-rose-700",
+    badge: "rose",
+  },
+  NOTE: {
+    icon: StickyNote,
+    wrapper: "bg-violet-100 text-violet-700",
+    badge: "violet",
   },
 };
 
@@ -142,7 +156,7 @@ export default function ActivityPage() {
       <PageHeader
         eyebrow="Historial compartido"
         title="Actividad"
-        description="Quién hizo qué y cuándo. Cada tarea, gasto, viaje y cambio en la compra queda aquí."
+        description="Quién hizo qué y cuándo. Cada tarea, gasto, viaje, comida o nota queda aquí."
       />
 
       <div className="mb-5 flex flex-wrap items-center gap-2">
