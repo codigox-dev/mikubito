@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   Activity,
+  CloudSun,
   Ellipsis,
   LayoutDashboard,
   ListTodo,
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/dashboard", label: "Inicio", icon: LayoutDashboard, mobile: true },
   { href: "/tareas", label: "Tareas", icon: ListTodo, mobile: true },
   { href: "/comidas", label: "Comidas", icon: UtensilsCrossed, mobile: true },
+  { href: "/tiempo", label: "Tiempo", icon: CloudSun, mobile: true },
   { href: "/finanzas", label: "Finanzas", icon: Wallet },
   { href: "/viajes", label: "Viajes", icon: Plane },
   {
@@ -71,7 +73,7 @@ function NavLink({ item, compact = false, onClick }) {
         href={item.href}
         onClick={onClick}
         className={cn(
-          "focus-ring flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[10px] font-semibold transition",
+          "focus-ring flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[9px] font-semibold transition sm:text-[10px]",
           active ? "bg-ink-900 text-white" : "text-ink-400 hover:bg-sand-100"
         )}
       >
@@ -234,7 +236,7 @@ export function AppShell({ children }) {
           </div>
         ) : null}
 
-        <div className="grid grid-cols-6 gap-1">
+        <div className="grid grid-cols-7 gap-0.5">
           {mobilePrimaryItems.map((item) => (
             <NavLink key={item.href} item={item} compact />
           ))}
@@ -244,7 +246,7 @@ export function AppShell({ children }) {
             aria-expanded={moreOpen}
             aria-label="Más secciones"
             className={cn(
-              "focus-ring flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[10px] font-semibold transition",
+              "focus-ring flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[9px] font-semibold transition sm:text-[10px]",
               moreOpen || moreActive
                 ? "bg-ink-900 text-white"
                 : "text-ink-400 hover:bg-sand-100"

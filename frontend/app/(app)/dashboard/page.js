@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
+import { WeatherWidget } from "@/components/weather-widget";
 import {
   Avatar,
   Badge,
@@ -413,6 +414,8 @@ export default function DashboardPage() {
         </div>
 
         <div className="space-y-5">
+          <WeatherWidget />
+
           {/* Presupuesto */}
           <Card className="p-5 sm:p-6">
             <div className="flex items-center justify-between">

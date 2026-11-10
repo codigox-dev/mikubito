@@ -1,8 +1,8 @@
 # Cubito 🏠
 
-Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tareas, finanzas, viajes, compra, planificación semanal de comidas, notas rápidas y un historial común de todo lo que pasa en casa.
+Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tareas, finanzas, viajes, compra, planificación semanal de comidas, notas rápidas, el tiempo de la zona y un historial común de todo lo que pasa en casa.
 
-> Estado: versión 1.2, lista para ejecutar en local y desplegar en AWS.
+> Estado: versión 1.3, lista para ejecutar en local y desplegar en AWS.
 
 ---
 
@@ -19,6 +19,7 @@ Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tar
 - **Supermercado**: una lista activa, productos con cantidad, marcado inmediato de comprados, sincronización automática cada 8 segundos, cierre de lista e historial.
 - **Comidas**: planificación semanal de lunes a domingo con desayuno, almuerzo y cena. Navegación entre semanas, huecos opcionales y edición o borrado de cada plato.
 - **Notas rápidas**: tablón compartido con creador rápido, autor, fecha y borrado con confirmación.
+- **El Tiempo**: Arganda del Rey y Rivas-Vaciamadrid fijos en pantalla con la previsión de **mañana** en primer plano, buscador de otros municipios españoles, detalle por horas y días de Madrid y tarjeta de Arganda en el inicio con acceso al módulo. Usa AEMET con respaldo automático de Open-Meteo.
 - **Auditoría global**: cada creación, edición o borrado guarda usuario, fecha, entidad y descripción.
 - **Diseño responsive** con sidebar en escritorio y navegación inferior en móvil.
 
@@ -48,9 +49,9 @@ Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tar
 │   │   └── seed.js              # Crea a Alex y Sandra
 │   ├── src/
 │   │   ├── config/env.js
-│   │   ├── lib/                 # Prisma, JWT, auditoría, serialización
+│   │   ├── lib/                 # Prisma, JWT, auditoría, serialización, clima
 │   │   ├── middleware/          # Auth Bearer, errores, 404
-│   │   ├── routes/              # auth, tasks, finance, trips, shopping, meals, notes...
+│   │   ├── routes/              # auth, tasks, finance, trips, shopping, meals, notes, weather...
 │   │   ├── app.js
 │   │   └── server.js
 │   ├── .env.example
@@ -66,6 +67,7 @@ Aplicación web privada de gestión del hogar para **Alex y Sandra**. Reúne tar
 │   │   │   ├── supermercado/
 │   │   │   ├── comidas/
 │   │   │   ├── notas/
+│   │   │   ├── tiempo/
 │   │   │   └── actividad/
 │   │   ├── login/
 │   │   └── layout.js
@@ -204,6 +206,9 @@ npm start
 | `SEED_PASSWORD` | Seed | Contraseña inicial compartida para el seed |
 | `LOGIN_RATE_LIMIT` | No | Intentos por IP. Por defecto `10` |
 | `LOGIN_RATE_WINDOW_MINUTES` | No | Ventana del rate limit. Por defecto `15` |
+| `AEMET_API_KEY` | No | Clave de AEMET OpenData. Si falta, se usa Open-Meteo |
+| `WEATHER_PROVIDER` | No | `auto`, `aemet` u `open-meteo`. Por defecto `auto` |
+| `WEATHER_CACHE_MINUTES` | No | Minutos de caché de las previsiones. Por defecto `20` |
 
 ### Frontend (`frontend/.env.local`)
 
@@ -212,6 +217,8 @@ npm start
 | `NEXT_PUBLIC_API_URL` | URL pública de la API, incluyendo `/api` |
 
 > `NEXT_PUBLIC_*` se incrusta en el bundle **en tiempo de build**. Si cambia la URL de la API en producción, vuelve a compilar el frontend.
+
+> **El Tiempo** funciona sin clave usando Open-Meteo. Para usar AEMET OpenData, solicita una clave gratuita en <https://opendata.aemet.es/> y añádela como `AEMET_API_KEY` en `backend/.env`.
 
 ---
 
@@ -250,6 +257,8 @@ Authorization: Bearer <jwt>
 | `GET` | `/api/notes` | Notas rápidas, de más reciente a más antigua |
 | `POST` | `/api/notes` | Crear una nota rápida (`content`) |
 | `DELETE` | `/api/notes/:id` | Eliminar una nota |
+| `GET` | `/api/weather?city=Arganda` | Tiempo actual y previsión de una ciudad; también acepta `lat`/`lon`/`name` |
+| `GET` | `/api/weather/search?q=Rivas` | Buscador de municipios y ciudades de España |
 | `GET` | `/api/notifications` | Últimas notificaciones y contador sin leer |
 | `POST` | `/api/notifications/:id/read` | Marcar una notificación como leída |
 | `POST` | `/api/notifications/read-all` | Marcar todas como leídas |
@@ -275,6 +284,10 @@ Respuesta de error estándar:
 - **Comidas con upsert por casilla**: `@@unique([date, mealType])` garantiza una sola comida por día y tipo. El POST devuelve `201` al crear y `200` al actualizar, conservando el autor original; la auditoría registra quién editó.
 - **Fechas de comida como texto** `YYYY-MM-DD` para evitar desfases de zona horaria. El rango semanal se valida y se limita a 62 días.
 - **Notas rápidas sin edición**: se crean y se borran; cada cambio queda en Actividad con un extracto de la nota como contexto.
+- **El Tiempo con doble fuente**: AEMET es la fuente principal cuando `AEMET_API_KEY` está configurada; si falla o no hay clave, Open-Meteo responde con el mismo contrato normalizado. Arganda y Rivas tienen coordenadas e identificadores fijos para cargar siempre sus tarjetas.
+- **Caché meteorológica en memoria**: las previsiones se guardan 20 minutos por defecto y, si la API externa cae, se sirve la última copia válida durante unas horas. El buscador de municipios reutiliza el listado de AEMET durante 24 h.
+- **Mañana en primer plano**: las tarjetas de Arganda y Rivas muestran siempre la previsión del día siguiente (máxima, mínima, sensación máxima, estado y lluvia) porque lo habitual es consultarlas por la noche para preparar la ropa. El inicio muestra solo Arganda con un acceso directo a `/tiempo`; el detalle del módulo abre en Madrid y conserva el bloque de próximas horas para la ciudad seleccionada.
+- **Atribución de datos**: la interfaz cita a AEMET y Open-Meteo. AEMET OpenData se consulta con `AEMET_API_KEY`; Open-Meteo no necesita clave.
 - **Marcado de productos**: actualización optimista en la UI + refresco silencioso cada 8 s. Se siente instantáneo y sincroniza el otro dispositivo sin añadir infraestructura WebSocket en la v1.
 - **Auditoría dentro de transacciones** junto al cambio principal, para que no exista una acción sin registro.
 - **Dinero con `Decimal(12,2)`** en PostgreSQL; la API lo serializa como número para la UI.

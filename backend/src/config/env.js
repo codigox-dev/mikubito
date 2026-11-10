@@ -36,6 +36,11 @@ const config = {
   corsOrigins,
   loginRateLimit: Number(process.env.LOGIN_RATE_LIMIT || 10),
   loginRateWindowMinutes: Number(process.env.LOGIN_RATE_WINDOW_MINUTES || 15),
+  weather: {
+    aemetApiKey: process.env.AEMET_API_KEY || "",
+    provider: (process.env.WEATHER_PROVIDER || "auto").toLowerCase(),
+    cacheMinutes: Number(process.env.WEATHER_CACHE_MINUTES || 20),
+  },
 };
 
 module.exports = { config };
